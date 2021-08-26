@@ -1,0 +1,42 @@
+name: 'Deploy'
+description: 'Deploy Docker Image to Google Cloud Run'
+inputs:
+  service-account-key:
+    description: 'Google Cloud Service Account Key'
+    required: true
+  gcloud-project-id:
+    description: 'Google Cloud Project Id'
+    required: true
+  gcloud-artifact-region:
+    description: 'Region for Google Cloud Artifact'
+    required: true
+  gcloud-artifact-project:
+    description: 'Project for Google Cloud Artifact'
+    required: true
+  gcloud-artifact-repository:
+    description: 'Repository for Google Cloud Artifact'
+    required: true
+  service-name:
+    description: 'Service Name, must match Google Cloud Artifact Service Name'
+    required: true
+  tag:
+    description: 'Docker Image tag to deploy'
+    required: true
+  deploy-region:
+    description: 'Deploy region'
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: google-github-actions/setup-gcloud@master
+      with:
+        service_account_key: ${{ inputs.service-account-key }}
+        project_id: ${{ inputs.gcloud-project-id }}
+        export_default_credentials: true
+    - uses: go-fjords/deploy-gcloud-run-using-digest@v1
+      name: Deploy Image to ${{ inputs.service-name }}
+      with:
+        image: ${{ inputs.gcloud-artifact-region }}-docker.pkg.dev/${{ inputs.gcloud-artifact-project }}/${{ inputs.gcloud-artifact-repository }}/${{ inputs.service-name }}
+        service-name: ${{ inputs.service-name }}
+        tag: ${{ inputs.tag }}
+        region: ${{ inputs.deploy-region }}
