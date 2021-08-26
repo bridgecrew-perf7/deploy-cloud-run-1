@@ -16,8 +16,11 @@ inputs:
   gcloud-artifact-repository:
     description: 'Repository for Google Cloud Artifact'
     required: true
+  gcloud-artifact-image:
+    description: 'Artifact Image name for Google Cloud Artifact'
+    required: true
   service-name:
-    description: 'Service Name, must match Google Cloud Artifact Service Name'
+    description: 'Service Name'
     required: true
   tag:
     description: 'Docker Image tag to deploy'
@@ -36,13 +39,13 @@ runs:
     - name: Get Docker Image Digest
       id: get-docker-image-digest
       run: |
-        export DOCKER_IMAGE_DIGEST=$(gcloud artifacts docker images list ${{ inputs.gcloud-artifact-region }}-docker.pkg.dev/${{ inputs.gcloud-artifact-project }}/${{ inputs.gcloud-artifact-repository }}/${{ inputs.service-name }} --format='value(version)' --include-tags --filter tags~${{ inputs.tag }})
+        export DOCKER_IMAGE_DIGEST=$(gcloud artifacts docker images list ${{ inputs.gcloud-artifact-region }}-docker.pkg.dev/${{ inputs.gcloud-artifact-project }}/${{ inputs.gcloud-artifact-repository }}/${{ inputs.gcloud-artifact-image }} --format='value(version)' --include-tags --filter tags~${{ inputs.tag }})
         echo "::set-output name=DOCKER_IMAGE_DIGEST::$DOCKER_IMAGE_DIGEST"
       shell: bash
     - name: Deploy
       run: |-
         gcloud run deploy ${{ inputs.service-name }} \
-        --image ${{ inputs.gcloud-artifact-region }}-docker.pkg.dev/${{ inputs.gcloud-artifact-project }}/${{ inputs.gcloud-artifact-repository }}/${{ inputs.service-name }}@${{ env.DOCKER_IMAGE_DIGEST }} \
+        --image ${{ inputs.gcloud-artifact-region }}-docker.pkg.dev/${{ inputs.gcloud-artifact-project }}/${{ inputs.gcloud-artifact-repository }}/${{ inputs.gcloud-artifact-image }}@${{ env.DOCKER_IMAGE_DIGEST }} \
         --region ${{ inputs.deploy-region }}
       shell: bash
       env:
